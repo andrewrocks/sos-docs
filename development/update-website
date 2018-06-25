@@ -25,9 +25,15 @@ run: expand='${ }'
 input:  '../src/homepage/*.ipynb', group_by=1
 output: f"../{_input:bn}.html"
 
+no_toc = 'Overview' in str(_input) or 'Features' in str(_input)
+
 run: expand=True
 	cd ../src/tutorials
-	sos convert {_input:a} {_output:a} --template basic
+	sos convert {_input:a} {_output:a} --template {'basic' if no_toc else '../templates/basic_toc.tpl'}
+
+stop_if(no_toc)
+run: expand=True
+    perl -pi -e 's/id="toc"/id="toc_{_output:bn}"/' {_output}
 
 [convert-example-scripts]
 input:  '../src/examples/*.sos', 'update-website', group_by=1
